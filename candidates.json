@@ -1,0 +1,10 @@
+[{"firstName":"Zoran","lastName":"Sakic","votes":13,
+   "imageFileName":"portrait010.jpg"}
+ ,{"firstName":"Emma","lastName":"Mäki","votes":13,
+   "imageFileName":"portrait003.jpg"}
+ ,{"firstName":"Rauha","lastName":"Laine","votes":13,
+   "imageFileName":"portrait002.jpg"}
+ ,{"firstName":"Alex","lastName":"Mäki","votes":13,
+   "imageFileName":"portrait007.jpg"}
+ ,{"firstName":"Aapeli","lastName":"Joki","votes":22,
+   "imageFileName":"portrait006.jpg"}]

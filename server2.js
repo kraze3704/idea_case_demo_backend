@@ -218,7 +218,38 @@ function addPlayer(name, points) {
     return returnValue;
 }
 
+/*
+ * GET request to path /cateogry/idsByBudgetLimit
+ * isAbove :: true -> > / false -> <=
+ * budget limit given
+ * return ids that matches the search
+*/
+app.get('/category/idsByBudgetLimit', function(req, res) {
+    let budget = req.query.budget;
+    let isAbove = req.query.above; // both parameters are String typess
 
+    // change isAbove attribute to boolean if it is false
+    if(isAbove == 'false')
+        isAbove = false;
+
+    console.log(`searching for ids that has budget ${isAbove ? "above" : "below"} ${budget}`);
+    
+    fs.readFile(__dirname + "/" + "category.json", 'utf8', function (err, data) {
+        let categoryFiltered = [];
+        let fullList = JSON.parse(data);
+
+        if(isAbove) {
+            fullList.map((category, index) => { if (category.budget > budget) categoryFiltered.push(fullList[index].name)});
+        } else {
+            fullList.map((category, index) => { if (category.budget <= budget) categoryFiltered.push(fullList[index].name)});
+        }
+        console.dir(categoryFiltered);
+
+        res.end(JSON.stringify(categoryFiltered));
+        }
+    );
+
+});
 
 var server = app.listen(8080, function () {
     "use strict";

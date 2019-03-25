@@ -1,9 +1,19 @@
+
+// #################################################################
+// ## commands for setting up required modules, settings and headers
+
 var express = require('express');
 var app = express();
 
 var fs = require('fs');
 // do i need fs?
 var jsonfile = require('jsonfile');
+
+var bodyParser = require('body-parser')
+app.use(bodyParser.json());              // for JSON-encoded body support
+app.use(bodyParser.urlencoded({         // for url-encoded body support
+    extended: true
+}));
 
 app.use(function (req, res, next) {
     "use strict";
@@ -14,6 +24,10 @@ app.use(function (req, res, next) {
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
     next();
 });
+
+
+// ###################################################################
+// ## server settings for each path starts below
 
 // make a simple backend for the Categories frontend
 // use .then() style promises
@@ -42,11 +56,7 @@ app.get("/category", function(req,res) {
     console.log(`searching for category id[${id}]`);
 
     let found = false;
-    let returnValue = {
-        "HttpStatusCode": "",
-        "Message": "",
-        "Data": "",
-    };
+    let returnValue = { "HttpStatusCode": "", "Message": "", "Data": "", };
     
     if(!id || id.length == 0) { // error handling for ID
         returnValue = {
@@ -82,7 +92,62 @@ app.get("/category", function(req,res) {
     }
 //  res.end(`request query id: ${id}`);
 });
+
 // 3.POST category => sent category added to the server's JSON file (POST: name, budget, id?)
+function CategoryADD(name, budget) {
+    "use strict";
+    let returnValue = { "HttpStatusCode": "", "Message": "", "Data": "", };
+
+    if( budget != 0 && !budget ) {
+        returnValue = {
+            "HttpStatusCode": "400",
+            "Message": "error: Budget cannot be missing"
+        };
+    }else if( budget < 0 ) {
+        returnValue = {
+            "HttpStatusCode": "400",
+            "Message": "error: Budget cannot be below zero"
+        };
+    }else if( !name || name.length == 0 ) {
+        returnValue = {
+            "HttpStatusCode": "400",
+            "Message": "error: Name cannot be missing"
+        };
+    } else {
+        returnValue = {
+            "HttpStatusCode": "200",
+            "Message": `[name:${name} budget:${budget}] added`
+        };
+        const newCategory = {
+            id: '',
+            name,
+            budget
+        }
+        jsonfile.readFile(FILEPATH)
+            .then(obj => {
+                const SIZE = obj.length;
+                let id = obj[SIZE - 1].id;
+                id++;
+                newCategory.id = id; // increment id and add to new category object
+
+                obj.push(newCategory);
+                return obj;
+            }).then(obj => jsonfile.writeFile(FILEPATH, obj, function(err) { if(err) console.error(err) }))
+            .catch(err => console.error(err));
+    }
+
+    return returnValue;
+}
+
+app.post("/categoryADD", function(req,res) {
+    let name = req.body.name;
+    let budget = req.body.budget;
+    console.log(`Adding with POST: [name]${name}[budget]${budget}`);
+    let returnValue = CategoryADD(name, budget);
+    res.writeHead(Number(returnValue.HttpStatusCode), { "Content-Type": "text/plain" });
+    res.end(`${returnValue.HttpStatusCode}: ${returnValue.Message}`);
+});
+
 // 4.DELETE category?id={id} deletes the category with id {id}
 
 var server = app.listen(8080, function() {

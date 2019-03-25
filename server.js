@@ -149,6 +149,56 @@ app.post("/categoryADD", function(req,res) {
 });
 
 // 4.DELETE category?id={id} deletes the category with id {id}
+app.get("/categoryDELETE", function(req,res) {
+    let id = req.query.id;
+    console.log(`Deleting with GET: [id]${id}`);
+    
+    "use strict";
+    let returnValue = { "HttpStatusCode": "", "Message": "", "Data": "", };
+    let isFound = false;
+
+    if(!id || id.length == 0) { // error handling for ID
+        returnValue = {
+            "HttpStatusCode": "400",
+            "Message": "ID cannot be empty!",
+        };
+        res.writeHead(Number(returnValue.HttpStatusCode), { "Content-Type": "text/plain" });
+        res.end(returnValue.Message.toString());
+    } else {
+        jsonfile.readFile(FILEPATH, function(err, obj){
+            for( let i = 0 ; i < obj.length ; i++ ) {
+                if(obj[i].id == id) {
+                    isFound = true;
+                    break;
+                }
+            } // search if the requested id exists in the db
+            
+            if(isFound) {
+                let new_obj = obj.filter(obj => obj.id != id);
+                jsonfile.writeFile(FILEPATH, new_obj, function(err) { if(err) console.error(err) });
+                returnValue = {
+                    "HttpStatusCode": "200",
+                    "Message": `category id ${id} deleted`
+                };
+            } else {
+                returnValue = {
+                    "HttpStatusCode": "404",
+                    "Message": `category id ${id} not found`
+                };
+            }
+            res.end(`${returnValue.HttpStatusCode} : ${returnValue.Message}`);
+        });
+    }
+/*
+    jsonfile.readFile(FILEPATH)
+        .then(obj => {
+            let new_obj = obj.filter(obj => obj.id != id);
+            return new_obj;
+        }).then(obj => jsonfile.writeFile(FILEPATH, obj, function(err) { if(err) console.error(err) }))
+        .catch(err => console.error(err));
+*/
+});
+
 
 var server = app.listen(8080, function() {
     console.log("app listening to port 8080")

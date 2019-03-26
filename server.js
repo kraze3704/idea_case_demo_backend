@@ -2,14 +2,14 @@
 // #################################################################
 // ## commands for setting up required modules, settings and headers
 
-var express = require('express');
-var app = express();
+let express = require('express');
+let app = express();
 
-var fs = require('fs');
+let fs = require('fs');
 // do i need fs?
-var jsonfile = require('jsonfile');
+let jsonfile = require('jsonfile');
 
-var bodyParser = require('body-parser')
+let bodyParser = require('body-parser')
 app.use(bodyParser.json());              // for JSON-encoded body support
 app.use(bodyParser.urlencoded({         // for url-encoded body support
     extended: true
@@ -200,6 +200,6 @@ app.get("/categoryDELETE", function(req,res) {
 });
 
 
-var server = app.listen(8080, function() {
+let server = app.listen(8080, function() {
     console.log("app listening to port 8080")
 });

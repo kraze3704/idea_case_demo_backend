@@ -140,10 +140,10 @@ function CategoryADD(name, budget) {
 }
 
 app.post("/categoryADD", function(req,res) {
-    let name = req.body.name;
-    let budget = req.body.budget;
+    const name = req.body.name;
+    const budget = req.body.budget;
     console.log(`Adding with POST: [name]${name}[budget]${budget}`);
-    let returnValue = CategoryADD(name, budget);
+    const returnValue = CategoryADD(name, budget);
     res.writeHead(Number(returnValue.HttpStatusCode), { "Content-Type": "text/plain" });
     res.end(`${returnValue.HttpStatusCode}: ${returnValue.Message}`);
 });
@@ -199,6 +199,86 @@ app.get("/categoryDELETE", function(req,res) {
 */
 });
 
+app.get("/categoryBudgetLimit", async function(req, res) {
+    const LIMIT = req.query.limit;
+    const ABOVE = req.query.above;
+    const returnValue = await CategoryBudgetLimit(LIMIT, ABOVE);
+    // console.dir(returnValue);
+
+    res.writeHead(Number(returnValue.HttpStatusCode), { "Content-Type": "text/plain" });
+
+    if(returnValue.HttpStatusCode == 200) {
+        const JSON_LIST = JSON.stringify(returnValue.CategoryIDFiltered)
+        res.end(JSON_LIST);
+    }else {
+        res.end(`${returnValue.HttpStatusCode}: ${returnValue.Message}`);
+    };
+});
+
+// backend will return 200/OK and the id array as JSON
+async function CategoryBudgetLimit(LIMIT, isABOVE) {
+    "use strict";
+    let returnValue = { "HttpStatusCode": "", "Message": "", };
+
+    if( LIMIT != 0 && !LIMIT ) {
+        returnValue = {
+            "HttpStatusCode": "400",
+            "Message": "error: Limit cannot be missing"
+        };
+    }else if( LIMIT < 0 ) {
+        returnValue = {
+            "HttpStatusCode": "400",
+            "Message": "error: Limit cannot be below zero"
+        };
+    }else if( isABOVE != "true" && isABOVE != "false" ) {
+        returnValue = {
+            "HttpStatusCode": "400",
+            "Message": "error: above should be true or false"
+        };
+    }else {
+        const ABOVE = (isABOVE == "true") ? true : false;
+        let CategoryIDFiltered = [];
+
+        await jsonfile.readFile(FILEPATH).
+            then(obj => {
+                for(let i = 0 ; i < obj.length ; i++){
+                    if( ABOVE ? obj[i].budget > LIMIT : obj[i].budget < LIMIT )
+                        CategoryIDFiltered.push(obj[i].id);
+                };
+            }).then(res => {
+                returnValue = {
+                    "HttpStatusCode": "200",
+                    "Message": `filtering with budget limit ${(ABOVE) ? "above" : "below"} ${LIMIT}`,
+                    "CategoryIDFiltered": CategoryIDFiltered,
+                };
+            }).catch(err => console.error(err));
+        /*
+        if(ABOVE) {
+            await jsonfile.readFile(FILEPATH).then( obj => {
+                for(let i = 0 ; i < obj.length ; i++) {
+                    if(obj[i].budget > LIMIT)
+                        CategoryIDFiltered.push(obj[i].id);
+                        console.log(`${i}:${CategoryIDFiltered.toString()}`);
+                }
+            }).then( res => {
+                returnValue = {
+                    "HttpStatusCode": "200",
+                    "Message": `filtering with budget limit ${(ABOVE) ? "above" : "below"} ${LIMIT}`,
+                    "CategoryIDFiltered": CategoryIDFiltered,
+                };
+            }).catch(err => console.error(err));
+        }else {
+            jsonfile.readFile(FILEPATH, function(err, obj) {
+                for(let i = 0 ; i < obj.length ; i++) {
+                    if(obj[i].budget < LIMIT)
+                        CategoryIDFiltered.push(obj[i].id);
+                }
+            });
+        }
+        */
+    }
+    return returnValue;
+}
 
 let server = app.listen(8080, function() {
     console.log("app listening to port 8080")
